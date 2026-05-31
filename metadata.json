@@ -1,0 +1,6 @@
+{
+  "name": "Kalimaya Alunna Finance & Stockist",
+  "description": "Sistem integrasi pembukuan keuangan masuk-keluar dan manajemen stockis gudang real-time dengan dasbor analitik interaktif dan laporan otomatis rancangan AI untuk PT. Kalimaya Alunna Indonesia.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
