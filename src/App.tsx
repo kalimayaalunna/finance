@@ -51,8 +51,14 @@ export default function App() {
     try {
       const response = await fetch('/api/data');
       if (!response.ok) {
-        throw new Error(`Koneksi server terputus: status ${response.status}`);
+        throw new Error(`Koneksi server terputus: status ${response.status}. Pastikan server backend Anda berjalan.`);
       }
+      
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Sistem sedang sinkronisasi. Harap tunggu beberapa saat.');
+      }
+      
       const data = await response.json();
       setStocks(data.stocks || []);
       setTransactions(data.transactions || []);
@@ -111,19 +117,24 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newStockItem)
       });
-      const resData = await res.json();
+      
+      let resData: any = {};
+      const contentType = res.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        resData = await res.json();
+      }
       
       if (!res.ok) {
-        triggerToast(resData.error || 'Gagal mendaftarkan sediaan baru', true);
+        triggerToast(resData?.error || `Gagal mendaftarkan sediaan baru (Gagal menghubungkan ke server, Status ${res.status})`, true);
         return false;
       }
       
       // Update state
-      setStocks(resData.data.stocks);
+      setStocks(resData.data?.stocks || []);
       triggerToast('Sediaan komoditas baru disimpan dengan aman ke gudang.');
       return true;
     } catch (e: any) {
-      triggerToast(e.message || 'Masalah jaringan ke server', true);
+      triggerToast(`Gagal mendaftarkan sediaan: ${e.message || 'Masalah jaringan ke server'}`, true);
       return false;
     }
   };
@@ -136,18 +147,23 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates)
       });
-      const resData = await res.json();
+      
+      let resData: any = {};
+      const contentType = res.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        resData = await res.json();
+      }
       
       if (!res.ok) {
-        triggerToast(resData.error || 'Gagal mengedit stok', true);
+        triggerToast(resData?.error || `Gagal mengedit stok (Gagal menghubungkan ke server, Status ${res.status})`, true);
         return false;
       }
       
       // Update state
-      setStocks(resData.data.stocks);
+      setStocks(resData.data?.stocks || []);
       return true;
     } catch (e: any) {
-      triggerToast(e.message || 'Masalah jaringan ke server', true);
+      triggerToast(`Gagal mengedit stok: ${e.message || 'Masalah jaringan ke server'}`, true);
       return false;
     }
   };
@@ -158,19 +174,24 @@ export default function App() {
       const res = await fetch(`/api/stock/${id}`, {
         method: 'DELETE'
       });
-      const resData = await res.json();
+      
+      let resData: any = {};
+      const contentType = res.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        resData = await res.json();
+      }
       
       if (!res.ok) {
-        triggerToast(resData.error || 'Gagal menghapus sediaan', true);
+        triggerToast(resData?.error || `Gagal menghapus sediaan (Gagal menghubungkan ke server, Status ${res.status})`, true);
         return false;
       }
       
       // Update state
-      setStocks(resData.data.stocks);
+      setStocks(resData.data?.stocks || []);
       triggerToast('Unit komoditas berhasil dihapus dari daftar pergudangan.');
       return true;
     } catch (e: any) {
-      triggerToast(e.message || 'Masalah jaringan ke server', true);
+      triggerToast(`Gagal menghapus sediaan: ${e.message || 'Masalah jaringan ke server'}`, true);
       return false;
     }
   };
@@ -183,20 +204,25 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newTx)
       });
-      const resData = await res.json();
+      
+      let resData: any = {};
+      const contentType = res.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        resData = await res.json();
+      }
       
       if (!res.ok) {
-        triggerToast(resData.error || 'Gagal mencatat transaksi kas', true);
+        triggerToast(resData?.error || `Gagal mencatat transaksi kas (Gagal menghubungkan ke server, Status ${res.status})`, true);
         return false;
       }
       
       // Dynamic response contains sync-updated stocks & transactions
-      setTransactions(resData.data.transactions);
-      setStocks(resData.data.stocks);
+      setTransactions(resData.data?.transactions || []);
+      setStocks(resData.data?.stocks || []);
       triggerToast(resData.message || 'Transaksi dicatat dan persediaan otomatis disesuaikan.');
       return true;
     } catch (e: any) {
-      triggerToast(e.message || 'Masalah jaringan ke server', true);
+      triggerToast(`Gagal mencatat transaksi: ${e.message || 'Masalah jaringan ke server'}`, true);
       return false;
     }
   };
@@ -207,18 +233,23 @@ export default function App() {
       const res = await fetch(`/api/finance/${id}`, {
         method: 'DELETE'
       });
-      const resData = await res.json();
+      
+      let resData: any = {};
+      const contentType = res.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        resData = await res.json();
+      }
       
       if (!res.ok) {
-        triggerToast(resData.error || 'Gagal menghapus entri keuangan', true);
+        triggerToast(resData?.error || `Gagal menghapus entri keuangan (Gagal menghubungkan ke server, Status ${res.status})`, true);
         return false;
       }
       
-      setTransactions(resData.data.transactions);
+      setTransactions(resData.data?.transactions || []);
       triggerToast('Catatan pembukuan kas dibatalkan atau dihapus.');
       return true;
     } catch (e: any) {
-      triggerToast(e.message || 'Masalah jaringan ke server', true);
+      triggerToast(`Gagal menghapus entri: ${e.message || 'Masalah jaringan ke server'}`, true);
       return false;
     }
   };
@@ -231,19 +262,24 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: reportStyle })
       });
-      const resData = await res.json();
+      
+      let resData: any = {};
+      const contentType = res.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        resData = await res.json();
+      }
       
       if (!res.ok) {
-        triggerToast(resData.error || 'Gagal menyusun laporan AI', true);
+        triggerToast(resData?.error || `Gagal menyusun laporan AI (Gagal menghubungkan ke server, Status ${res.status})`, true);
         return false;
       }
       
       // Put updated data state
-      setReports(resData.data.reports);
+      setReports(resData.data?.reports || []);
       triggerToast('Kecerdasan Buatan Gemini berhasil merumuskan analisis baru!');
       return true;
     } catch (e: any) {
-      triggerToast(e.message || 'Masalah jaringan ke server', true);
+      triggerToast(`Gagal merumuskan laporan AI: ${e.message || 'Masalah jaringan ke server'}`, true);
       return false;
     }
   };
